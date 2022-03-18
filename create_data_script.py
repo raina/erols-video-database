@@ -31,7 +31,7 @@ category_names = ["Action", "Animation", "Children", "Classics", "Comedy", "Docu
 "Drama", "Games", "Horror", "Musical", "Sci-Fi", "Sports", "Thriller"]
 
 for i in range(len(category_names)):
-    state_data["category_name"].append((category_names)[i])
+    category_data["category_name"].append((category_names)[i])
 
 # City
 # has City (name)
@@ -41,7 +41,7 @@ city_names = ["Seattle", "Portland", "Los Angeles", "New York", "Boulder", "Aust
 "Atlanta", "Chicago", "San Francisco", "San Diego"]
 
 for i in range(len(city_names)):
-    state_data["city_name"].append((city_names)[i])
+    city_data["city_name"].append((city_names)[i])
 
 # Customer
 # has store ID, first and last name, City ID, create date, last rental?
@@ -54,10 +54,29 @@ for i in range(500):
 
 # Film
 # has Title (two word combo)
-# release year, language ID, original language ID, rental_duration, category
+# release year, language ID, rental_duration, category
 # rental price, length in minutes, replacement_costs, rating, special features
 
 film_data = defaultdict(list)
+
+for i in range(10):
+    film_data["id"].append(i)
+    film_data["language_id"].append(1) # Everything in English for now
+    duration = random.randrange(3,7,1)
+    film_data["rental_duration"].append(duration)
+
+    category_id = random.randrange(len(category_data))
+    film_data["category_id"].append("category_id")
+
+    rental_price = random.randrange(3,8,2) # Rentals are either 3,5 or 7
+    film_data["rental_price"].append(rental_price)
+
+    film_data["length"].append(random.randrange(90,180))
+
+    replacement_price = round(random.uniform(10,25), 2)
+    film_data["replacement_price"].append(replacement_price)
+
+    
 
 
 # Film_actor bridges film and actor tables.
