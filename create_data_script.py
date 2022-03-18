@@ -3,12 +3,50 @@ import random
 import datetime
 from faker import Faker
 from faker.providers import BaseProvider
+from faker.providers import DynamicProvider
 from collections import defaultdict
 from sqlalchemy import create_engine
 
 fake = Faker()
 
+# Create function to randomize outcome with weights
+# Might want to somehow refactor this depending on what use cases end up being
+def weighted_random(weight1,weight2,lower1,upper1,lower2,upper2,lower3,upper3):
+
+    x = random.randint(1,100)
+
+    if x <= weight1:
+        num = random.randrange(lower1,upper1)
+        return num
+    elif x > weight1 and x <= weight2:
+        num = random.randrange(lower2,upper2)
+        return num
+    else:
+        num = random.randrange(lower3,upper3)
+        return num
+
 # Create new dynamic providers that generate specific info
+
+# Movie Name provider - needs enough choices to create unique names for everything
+# Everything singular
+
+movie_name_provider = DynamicProvider(
+    provider_name = "movie_name",
+    elements=["Battle", "Mage", "New York", "Alien", "Cowboy", "Space", "Pirate",
+    "Showdown", "Magic", "Dog", "Office", "Robot", "Party", "Night", "Day", "Tree",
+    "Sasquatch", "Water", "Fire", "Earth", "Air", "Tree", "Park"]
+)
+
+fake.add_provider(movie_name_provider)
+
+# Special features providers
+special_features_provider = DynamicProvider(
+provider_name = "special_features",
+elements=["Deleted Scenes", "Director's Cut", "Director Commentary", "Interviews",
+"Behind The Scenes"]
+)
+
+fake.add_provider(special_features_provider)
 
 # One list per table
 # Actors have first name, last name
@@ -59,9 +97,27 @@ for i in range(500):
 
 film_data = defaultdict(list)
 
-for i in range(10):
-    film_data["id"].append(i)
-    film_data["language_id"].append(1) # Everything in English for now
+for i in range(25):
+    film_data["id"].append(i + 1)
+
+    two_word_title = fake.movie_name() + " " + fake.movie_name()
+    film_data["title"].append(two_word_title)
+
+    # Weight movie releases to favor more recent (but not brand-new) releases
+    release_year = weighted_random(5,90,1970,1980,1981,2005,2006,2007)
+    film_data["release_year"].append(release_year)
+
+    # Weight language id
+    x = random.randint(1,100)
+    if x <= 8:
+        language_id = 2
+    elif x > 8 and x <= 90:
+        language_id = 1
+    else:
+        language_id = random.randrange(3,7)
+
+    film_data["language_id"].append(language_id)
+
     duration = random.randrange(3,7,1)
     film_data["rental_duration"].append(duration)
 
@@ -76,8 +132,30 @@ for i in range(10):
     replacement_price = round(random.uniform(10,25), 2)
     film_data["replacement_price"].append(replacement_price)
 
-    
+    # Weight rating id
+    x = random.randint(1,100)
+    if x <= 5:
+        rating_id = 1
+    elif x > 6 and x <= 15:
+        rating_id = 2
+    elif x > 16 and x <= 85:
+        rating_id = 3
+    elif x > 86 and x <= 95:
+        rating_id = 4
+    else:
+        rating_id = 5
 
+    film_data["rating_id"].append(rating_id)
+
+    # Adds list of 1-3 special features
+    features_list = []
+    features_number = random.randrange(1,3)
+
+    for j in range(features_number):
+        features_list.append(fake.special_features())
+
+    final_list = list(set(features_list)) # Removes any duplicates
+    film_data["special_features"].append(final_list)
 
 # Film_actor bridges film and actor tables.
 # Every film needs at least 2 actors, up to like 10?
@@ -95,11 +173,20 @@ for i in range(len(film_data)):
 # " A ?adj ?film_type of a ?noun and a ?noun who ?action a ?noun in ?location"
 film_text_data = defaultdict(list)
 
-
 # Inventory has film ID, store ID, and an update (purchase?) update
 # smthg like for i in film.id for j in store.id generate 1:10 copies
 
-# Language has name - can probably just manually make this guy its only 8ish rows
+# Language
+# has ID and name
+language_data = defaultdict(list)
+
+language_names = ["English", "Japanese", "Spanish", "French", "Mandarin",
+"Italian", "German"]
+
+for i in range(len(language_names)):
+
+    language_data["language_id"].append(i + 1)
+    language_data["language_name"].append((language_names)[i])
 
 # location
 # Has city id and state id
@@ -107,6 +194,17 @@ film_text_data = defaultdict(list)
 
 # Line item
 # Has ID, film ID, transaction ID, payment amount
+
+# mpa_rating
+# has id, name
+rating_data = defaultdict(list)
+
+ratings = ["G", "PG", "PG-13", "R", "NC-17"]
+
+for i in range(len(ratings)):
+
+    rating_data["rating_id"].append(i + 1)
+    rating_data["mpa_rating"].append((ratings)[i])
 
 # Rental
 # Line item ID (not transaction), rental date, return date
