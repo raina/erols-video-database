@@ -78,7 +78,7 @@ for i in range(len(category_names)):
 city_data = defaultdict(list)
 
 city_names = ["Seattle", "Portland", "Los Angeles", "New York", "Boulder", "Austin",
-"Atlanta", "Chicago", "San Francisco", "San Diego"]
+"Atlanta", "Chicago"]
 
 for i in range(len(city_names)):
     city_data["city_name"].append((city_names)[i])
@@ -208,13 +208,24 @@ for i in range(len(film_data)):
     film_text_data["film_description"].append(film_description)
 
 # -----------------------------------------------------------------------------
-# Inventory has film ID, store ID, and purchase date
-# smthg like for i in film.id for j in store.id generate 1:10 copies
+# Inventory
+# has film ID, store ID, and purchase date
+
+# This one might need to just do auto-incrementing ID
+# OR a second loop that adds ID based on len of list
 
 inventory_data = defaultdict(list)
 
+for i in range(25): #Rm the magique number (number of films)
+    for j in range(100): #Rm the magic-tastic number (number of stores)
+        num_of_copies = random.randint(1,4) # Between 1 and 4 copies of each movie per store
+        for k in range(num_of_copies):
+            inventory_data["film_id"].append(i + 1)
+            inventory_data["store_id"].append(j + 1)
 
-
+            opening_date = datetime.date(1990,6,23)
+            current_date = datetime.date(2007,3,9)
+            inventory_data["purchase_date"].append(fake.date_between_dates(opening_date, current_date))
 # -----------------------------------------------------------------------------
 
 # Language
@@ -232,11 +243,17 @@ for i in range(len(language_names)):
 
 # location
 # Has city id and state id
+# This only works because city and state name lists are manually typed in the right order.
+location_data = defaultdict(list)
+
+for i in range(len(city_names)):
+    location_data["state_id"].append(i + 1)
+    location_data["city_id"].append(i + 1)
 
 # -----------------------------------------------------------------------------
 
 # Line item
-# Has ID, film ID, transaction ID, payment amount
+# Has ID, film ID, transaction ID, price
 # -----------------------------------------------------------------------------
 
 # mpa_rating
@@ -253,11 +270,12 @@ for i in range(len(ratings)):
 
 # Rental
 # Line item ID (not transaction), rental date, return date
-# Return date being some kind of function of rental length?
+# Return date is a function of rental length
 # Like rand(rental_duration - 2):(rental_duration + 2)
 # -----------------------------------------------------------------------------
 
-# Staff first name, last name, email (same formula), store_id, active
+# Staff
+# has first name, last name, email, store_id, active
 
 staff_data = defaultdict(list)
 
@@ -278,6 +296,7 @@ state_names = ["Washington", "Oregon", "California", "New York", "Colorado", "Te
 "Georgia", "Illinois"]
 
 for i in range(len(state_names)):
+    state_data["state_id"].append(i+1)
     state_data["state_name"].append((state_names)[i])
 # -----------------------------------------------------------------------------
 
@@ -298,5 +317,15 @@ for i in range(100):
 # -----------------------------------------------------------------------------
 
 # transaction
-# Has ID, staff id, customer id, store id (maybe?), total amount, rental date,
+# consists of multiple line items
+# Has ID, staff id, customer id, store id, total amount, rental date
+
+# This should probably go Like
+# Every customer has home store and at least one transaction
+# Every store has certain employees who could do transaction
+# Total amount is kinda tricky so maybe that's done in db?
+
 transaction_data = defaultdict(list)
+
+for i in range(100):
+    transaction_data["transaction_id"].append(i + 1)
