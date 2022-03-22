@@ -73,9 +73,7 @@ fake.add_provider(special_features_provider)
 # actor_full_name = actor_data.get("first_name")[actor_id] + " " + actor_data.get("last_name")[actor_id]
 
 # -----------------------------------------------------------------------------
-
-# Actors
-# has first name, last name
+# Actors: ID, first name, last name
 actor_data = defaultdict(list)
 
 for i in range(number_of_actors):
@@ -85,9 +83,7 @@ for i in range(number_of_actors):
 
 df_actor_data = pd.DataFrame(actor_data)
 # -----------------------------------------------------------------------------
-
-# Category
-# has Name
+# Category: ID, Name
 category_data = defaultdict(list)
 
 category_names = ["Action", "Animation", "Children", "Classics", "Comedy", "Documentary",
@@ -99,9 +95,7 @@ for i in range(len(category_names)):
 
 df_category_data = pd.DataFrame(category_data)
 # -----------------------------------------------------------------------------
-
-# City
-# has City (name)
+# City: ID, name
 city_data = defaultdict(list)
 
 city_names = ["Seattle", "Portland", "Los Angeles", "New York", "Boulder", "Austin",
@@ -113,9 +107,7 @@ for i in range(len(city_names)):
 
 df_city_data = pd.DataFrame(city_data)
 # -----------------------------------------------------------------------------
-
-# Customer
-# has store ID, first and last name, City ID, create date
+# Customer: ID, first name, last name, City ID, create date
 customer_data = defaultdict(list)
 
 for i in range(number_of_customers):
@@ -127,10 +119,8 @@ for i in range(number_of_customers):
 
 df_customer_data = pd.DataFrame(customer_data)
 # -----------------------------------------------------------------------------
-
-# Film
-# has Title (two word combo), release year, language ID, rental_duration, category
-# rental price, length in minutes, replacement_costs, rating, special features
+# Film: Title, release year, language ID, rental duration, category, rental price,
+#       length in minutes, replacement cost, rating, special features
 
 film_data = defaultdict(list)
 
@@ -197,7 +187,7 @@ for i in range(number_of_films):
 
 df_film_data = pd.DataFrame(film_data)
 # -----------------------------------------------------------------------------
-# Film_actor bridges film and actor tables.
+# Film_actor: bridges film and actor tables
 film_actors_data = defaultdict(list)
 
 for i in range(number_of_films):
@@ -213,9 +203,7 @@ for i in range(number_of_films):
 
 df_film_actors_data = pd.DataFrame(film_actors_data)
 # -----------------------------------------------------------------------------
-
-# Film text is a generated description of a movie in format:
-# " A ?adj ?film_type of a ?noun who ?action a ?noun in ?location"
+# Film text: is a generated description of a film
 film_text_data = defaultdict(list)
 
 adj_list = ["striking", "lovely", "exciting", "sorrowful", "poignant",
@@ -252,8 +240,7 @@ for i in range(number_of_films):
 
 df_film_text_data = pd.DataFrame(film_text_data)
 # -----------------------------------------------------------------------------
-# Inventory
-# has film ID, store ID, and purchase date
+# Inventory: film ID, store ID, and purchase date
 
 inventory_data = defaultdict(list)
 
@@ -265,13 +252,13 @@ for i in range(number_of_films):
         for k in range(num_of_copies):
             inventory_data["film_id"].append(i + 1)
             inventory_data["store_id"].append(j + 1)
-            inventory_data["purchase_date"].append(fake.date_between_dates(opening_date, current_date))
+            movie_release_year = film_data.get("release_year")[i]
+            film_release_date = datetime.datetime(movie_release_year,1,1)
+            inventory_data["purchase_date"].append(fake.date_between_dates(film_release_date, current_date))
 
 df_inventory_data = pd.DataFrame(inventory_data)
 # -----------------------------------------------------------------------------
-
-# Language
-# has ID and name
+# Language: ID and name
 language_data = defaultdict(list)
 
 language_names = ["English", "Japanese", "Spanish", "French", "Mandarin",
@@ -284,9 +271,7 @@ for i in range(len(language_names)):
 
 df_language_data = pd.DataFrame(language_data)
 # -----------------------------------------------------------------------------
-
-# location
-# Has city id and state id
+# location: city id and state id
 # This only works because city and state name lists are manually typed in the right order.
 location_data = defaultdict(list)
 
@@ -296,13 +281,10 @@ for i in range(len(city_names)):
 
 df_location_data = pd.DataFrame(location_data)
 # -----------------------------------------------------------------------------
-
 # Line item
 # Has ID, film ID, transaction ID, price
 # -----------------------------------------------------------------------------
-
-# mpa_rating
-# has id, name
+# mpa_rating: id, name
 rating_data = defaultdict(list)
 
 ratings = ["G", "PG", "PG-13", "R", "NC-17"]
@@ -314,15 +296,12 @@ for i in range(len(ratings)):
 
 df_rating_data = pd.DataFrame(rating_data)
 # -----------------------------------------------------------------------------
-
 # Rental
 # Line item ID (not transaction), rental date, return date
 # Return date is a function of rental length
 # Like rand(rental_duration - 2):(rental_duration + 2)
 # -----------------------------------------------------------------------------
-
-# Staff
-# has first name, last name, email, store_id, active
+# Staff: first name, last name, email, store_id, active
 
 staff_data = defaultdict(list)
 
@@ -337,9 +316,7 @@ for i in range(number_of_staff):
 
 df_staff_data = pd.DataFrame(staff_data)
 # -----------------------------------------------------------------------------
-
-# State
-# Has id, name
+# State: id, name
 state_data = defaultdict(list)
 
 state_names = ["Washington", "Oregon", "California", "New York", "Colorado", "Texas",
@@ -351,9 +328,7 @@ for i in range(len(state_names)):
 
 df_state_data = pd.DataFrame(state_data)
 # -----------------------------------------------------------------------------
-
-# STORE
-# has manager_staff_id, City id, opening date
+# STORE: manager_staff_id, City id, opening date
 store_data = defaultdict(list)
 
 for i in range(number_of_stores):
@@ -367,7 +342,6 @@ for i in range(number_of_stores):
 
 # df_store_data = pd.DataFrame(store_data)
 # -----------------------------------------------------------------------------
-
 # transaction
 # consists of multiple line items
 # Has ID, staff id, customer id, store id, total amount, rental date
