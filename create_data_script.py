@@ -61,6 +61,8 @@ for i in range(20):
     actor_data["actor_id"].append(i + 1)
     actor_data["first_name"].append(fake.first_name())
     actor_data["last_name"].append(fake.last_name())
+
+df_actor_data = pd.DataFrame(actor_data)
 # -----------------------------------------------------------------------------
 
 # Category
@@ -73,6 +75,8 @@ category_names = ["Action", "Animation", "Children", "Classics", "Comedy", "Docu
 for i in range(len(category_names)):
     category_data["category_id"].append(i+1)
     category_data["category_name"].append((category_names)[i])
+
+df_category_data = pd.DataFrame(category_data)
 # -----------------------------------------------------------------------------
 
 # City
@@ -85,6 +89,8 @@ city_names = ["Seattle", "Portland", "Los Angeles", "New York", "Boulder", "Aust
 for i in range(len(city_names)):
     city_data["city_id"].append(i + 1)
     city_data["city_name"].append((city_names)[i])
+
+df_city_data = pd.DataFrame(city_data)
 # -----------------------------------------------------------------------------
 
 # Customer
@@ -100,6 +106,8 @@ for i in range(500):
     current_date = datetime.date(2007,3,9)
     customer_data["joined_on"].append(fake.date_between_dates(opening_date, current_date))
     customer_data["city_id"].append(random.randrange(1, len(city_names)))
+
+df_customer_data = pd.DataFrame(customer_data)
 # -----------------------------------------------------------------------------
 
 # Film
@@ -167,6 +175,8 @@ for i in range(25):
 
     final_list = list(set(features_list)) # Removes any duplicates
     film_data["special_features"].append(final_list)
+
+df_film_data = pd.DataFrame(film_data)
 # -----------------------------------------------------------------------------
 # Film_actor bridges film and actor tables.
 # Every film needs at least 2 actors, up to like 10
@@ -178,6 +188,8 @@ for i in range(25): #TODO rm magic number
         actor_id = random.randrange(1,20) #Grab random actor id
         actor_full_name = actor_data.get("first_name")[actor_id] + " " + actor_data.get("last_name")[actor_id]
         film_actors_data["film_id"].append(actor_full_name)
+
+df_film_actors_data = pd.DataFrame(film_actors_data)
 # -----------------------------------------------------------------------------
 
 # Film text is a generated description of a movie in format:
@@ -216,6 +228,7 @@ for i in range(len(film_data)):
 
     film_text_data["film_description"].append(film_description)
 
+df_film_text_data = pd.DataFrame(film_text_data)
 # -----------------------------------------------------------------------------
 # Inventory
 # has film ID, store ID, and purchase date
@@ -235,6 +248,8 @@ for i in range(25): #Rm the magique number (number of films)
             opening_date = datetime.date(1990,6,23)
             current_date = datetime.date(2007,3,9)
             inventory_data["purchase_date"].append(fake.date_between_dates(opening_date, current_date))
+
+df_inventory_data = pd.DataFrame(inventory_data)
 # -----------------------------------------------------------------------------
 
 # Language
@@ -248,6 +263,8 @@ for i in range(len(language_names)):
 
     language_data["language_id"].append(i + 1)
     language_data["language_name"].append((language_names)[i])
+
+df_language_data = pd.DataFrame(language_data)
 # -----------------------------------------------------------------------------
 
 # location
@@ -259,6 +276,7 @@ for i in range(len(city_names)):
     location_data["state_id"].append(i + 1)
     location_data["city_id"].append(i + 1)
 
+df_location_data = pd.DataFrame(location_data)
 # -----------------------------------------------------------------------------
 
 # Line item
@@ -275,6 +293,8 @@ for i in range(len(ratings)):
 
     rating_data["rating_id"].append(i + 1)
     rating_data["mpa_rating"].append((ratings)[i])
+
+df_rating_data = pd.DataFrame(rating_data)
 # -----------------------------------------------------------------------------
 
 # Rental
@@ -296,6 +316,8 @@ for i in range(5):
     staff_data["email"].append(staff_email)
     # Store ID
     # Active employee - weight towards Y
+
+df_staff_data = pd.DataFrame(staff_data)
 # -----------------------------------------------------------------------------
 
 # State
@@ -308,13 +330,15 @@ state_names = ["Washington", "Oregon", "California", "New York", "Colorado", "Te
 for i in range(len(state_names)):
     state_data["state_id"].append(i+1)
     state_data["state_name"].append((state_names)[i])
+
+df_state_data = pd.DataFrame(state_data)
 # -----------------------------------------------------------------------------
 
 # STORE
 # has manager_staff_id, City id, opening date
 store_data = defaultdict(list)
 
-for i in range(100):
+for i in range(10):
     random_city_id = random.randrange(1, len(city_names), 1)
     store_data["city_id"].append(random_city_id)
 
@@ -324,6 +348,8 @@ for i in range(100):
     opening_date = datetime.date(1990,6,23)
     current_date = datetime.date(2007,3,9)
     store_data["opening_date"].append(fake.date_between_dates(opening_date, current_date))
+
+# df_store_data = pd.DataFrame(store_data)
 # -----------------------------------------------------------------------------
 
 # transaction
@@ -337,6 +363,26 @@ for i in range(100):
 
 transaction_data = defaultdict(list)
 
-for i in range(100):
+for i in range(10):
     transaction_data["transaction_id"].append(i + 1)
-    transaction_data["total_paid"].append(15) #TODO rm, for testing only 
+    transaction_data["total_paid"].append(15) #TODO rm, for testing only
+
+df_transaction_data = pd.DataFrame(transaction_data)
+# -----------------------------------------------------------------------------
+# Add data to testdb schema
+engine = create_engine('mysql://root:rootroot@localhost/testdb', echo=False)
+
+# This can defs be a function
+df_actor_data.to_sql('actor', con=engine, index=False)
+df_category_data.to_sql('category', con=engine, index=False)
+df_city_data.to_sql('city', con=engine, index=False)
+df_customer_data.to_sql('customer', con=engine, index=False)
+# df_film_data.to_sql('film', con=engine, index=False) errors exist, "operand should contain one column" - PROBABLY special features col
+df_film_text_data.to_sql('film_text', con=engine, index=False)
+df_language_data.to_sql('language', con=engine, index=False)
+df_location_data.to_sql('location', con=engine, index=False)
+df_rating_data.to_sql('mpa_rating', con=engine, index=False)
+df_staff_data.to_sql('staff', con=engine, index=False)
+df_transaction_data.to_sql('transactions', con=engine, index=False)
+
+# -----------------------------------------------------------------------------
