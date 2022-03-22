@@ -25,7 +25,7 @@ def weighted_random(weight1,weight2,lower1,upper1,lower2,upper2,lower3,upper3):
         num = random.randrange(lower3,upper3)
         return num
 
-# new dynamic providers that generate specific info
+# new dynamic providers to generate specific info
 
 # Movie Name provider
 movie_name_provider = DynamicProvider(
@@ -58,6 +58,7 @@ actor_data = defaultdict(list)
 # list as value
 
 for i in range(20):
+    actor_data["actor_id"].append(i + 1)
     actor_data["first_name"].append(fake.first_name())
     actor_data["last_name"].append(fake.last_name())
 # -----------------------------------------------------------------------------
@@ -70,6 +71,7 @@ category_names = ["Action", "Animation", "Children", "Classics", "Comedy", "Docu
 "Drama", "Games", "Horror", "Musical", "Sci-Fi", "Sports", "Thriller"]
 
 for i in range(len(category_names)):
+    category_data["category_id"].append(i+1)
     category_data["category_name"].append((category_names)[i])
 # -----------------------------------------------------------------------------
 
@@ -81,16 +83,23 @@ city_names = ["Seattle", "Portland", "Los Angeles", "New York", "Boulder", "Aust
 "Atlanta", "Chicago"]
 
 for i in range(len(city_names)):
+    city_data["city_id"].append(i + 1)
     city_data["city_name"].append((city_names)[i])
 # -----------------------------------------------------------------------------
 
 # Customer
-# has store ID, first and last name, City ID, create date, last rental?
+# has store ID, first and last name, City ID, create date
 customer_data = defaultdict(list)
 
 for i in range(500):
+    customer_data["customer_id"].append(i+1)
     customer_data["first_name"].append(fake.first_name())
     customer_data["last_name"].append(fake.last_name())
+
+    opening_date = datetime.date(1990,6,23)
+    current_date = datetime.date(2007,3,9)
+    customer_data["joined_on"].append(fake.date_between_dates(opening_date, current_date))
+    customer_data["city_id"].append(random.randrange(1, len(city_names)))
 # -----------------------------------------------------------------------------
 
 # Film
@@ -100,7 +109,7 @@ for i in range(500):
 film_data = defaultdict(list)
 
 for i in range(25):
-    film_data["id"].append(i + 1)
+    film_data["film_id"].append(i + 1)
 
     two_word_title = fake.movie_name() + " " + fake.movie_name()
     film_data["title"].append(two_word_title)
@@ -280,6 +289,7 @@ for i in range(len(ratings)):
 staff_data = defaultdict(list)
 
 for i in range(5):
+    staff_data["staff_id"].append(i+1)
     staff_data["first_name"].append(fake.first_name())
     staff_data["last_name"].append(fake.last_name())
     staff_email = staff_data.get("first_name")[i] + staff_data.get("last_name")[i] + "@company.com"
@@ -329,3 +339,4 @@ transaction_data = defaultdict(list)
 
 for i in range(100):
     transaction_data["transaction_id"].append(i + 1)
+    transaction_data["total_paid"].append(15) #TODO rm, for testing only 
