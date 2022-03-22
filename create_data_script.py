@@ -9,6 +9,30 @@ from sqlalchemy import create_engine
 
 fake = Faker()
 
+# Constants - set these to determine how many records are generated
+number_of_films = 200
+number_of_actors = 300
+number_of_customers = 1000
+number_of_staff = 100
+number_of_stores = 20
+number_of_transactions = 3000
+
+# Minimums and maximums for various options
+min_rental_price = 3
+max_rental_price = 7
+rental_price_increment = 2 # How many dollars between rental prices
+min_rental_duration = 3
+max_rental_duration = 7
+min_replacement_cost = 10
+max_replacement_cost = 25
+max_inventory_copies = 4
+max_actors_in_film = 10
+max_special_features = 3
+
+# Opening date of the first store, and date the records were taken (latest possible)
+opening_date = datetime.date(1990,6,23)
+current_date = datetime.date(2007,3,9)
+
 # Create function to randomize outcome with weights
 # Might want to somehow refactor this depending on what use cases end up being
 def weighted_random(weight1,weight2,lower1,upper1,lower2,upper2,lower3,upper3):
@@ -25,8 +49,7 @@ def weighted_random(weight1,weight2,lower1,upper1,lower2,upper2,lower3,upper3):
         num = random.randrange(lower3,upper3)
         return num
 
-# new dynamic providers to generate specific info
-
+# New Dynamic providers to generate specific info
 # Movie Name provider
 movie_name_provider = DynamicProvider(
     provider_name = "movie_name",
@@ -46,18 +69,16 @@ elements=["Deleted Scenes", "Director's Cut", "Director Commentary", "Interviews
 
 fake.add_provider(special_features_provider)
 
+# Example of accessing specific value in list
+# actor_full_name = actor_data.get("first_name")[actor_id] + " " + actor_data.get("last_name")[actor_id]
+
 # -----------------------------------------------------------------------------
 
 # Actors
 # has first name, last name
 actor_data = defaultdict(list)
 
-# Use methods in faker to generate data in list
-# Because defaultdict(list) was used, whenever a key is accessed
-# that hasn't been created, it'll automatically be added w/ empty
-# list as value
-
-for i in range(20):
+for i in range(number_of_actors):
     actor_data["actor_id"].append(i + 1)
     actor_data["first_name"].append(fake.first_name())
     actor_data["last_name"].append(fake.last_name())
@@ -97,13 +118,10 @@ df_city_data = pd.DataFrame(city_data)
 # has store ID, first and last name, City ID, create date
 customer_data = defaultdict(list)
 
-for i in range(500):
+for i in range(number_of_customers):
     customer_data["customer_id"].append(i+1)
     customer_data["first_name"].append(fake.first_name())
     customer_data["last_name"].append(fake.last_name())
-
-    opening_date = datetime.date(1990,6,23)
-    current_date = datetime.date(2007,3,9)
     customer_data["joined_on"].append(fake.date_between_dates(opening_date, current_date))
     customer_data["city_id"].append(random.randrange(1, len(city_names)))
 
@@ -116,7 +134,7 @@ df_customer_data = pd.DataFrame(customer_data)
 
 film_data = defaultdict(list)
 
-for i in range(25):
+for i in range(number_of_films):
     film_data["film_id"].append(i + 1)
 
     two_word_title = fake.movie_name() + " " + fake.movie_name()
@@ -126,7 +144,7 @@ for i in range(25):
     release_year = weighted_random(5,90,1970,1980,1981,2005,2006,2007)
     film_data["release_year"].append(release_year)
 
-    # Weight language id
+    # Weight language id - mainly English, some Japanese, rest other
     x = random.randint(1,100)
     if x <= 8:
         language_id = 2
@@ -137,21 +155,21 @@ for i in range(25):
 
     film_data["language_id"].append(language_id)
 
-    duration = random.randrange(3,7,1)
+    duration = random.randrange(min_rental_duration,max_rental_duration + 1) #Adding one to make correct max
     film_data["rental_duration"].append(duration)
 
     category_id = random.randrange(len(category_data))
     film_data["category_id"].append("category_id")
 
-    rental_price = random.randrange(3,8,2) # Rentals are either 3,5 or 7
+    rental_price = random.randrange(min_rental_price,max_rental_price+1,rental_price_increment) #Adding one to make correct max
     film_data["rental_price"].append(rental_price)
 
-    film_data["length"].append(random.randrange(90,180))
+    film_data["length"].append(random.randrange(90,180)) # Length in minutes
 
-    replacement_price = round(random.uniform(10,25), 2)
+    replacement_price = round(random.uniform(min_replacement_cost, max_replacement_cost), 2)
     film_data["replacement_price"].append(replacement_price)
 
-    # Weight rating id
+    # Weight mpa rating - loosely follows real-life distribution
     x = random.randint(1,100)
     if x <= 5:
         rating_id = 1
@@ -166,28 +184,32 @@ for i in range(25):
 
     film_data["rating_id"].append(rating_id)
 
-    # Adds list of 1-3 special features
-    features_list = []
-    features_number = random.randrange(1,3)
+    # Create list of special features
+    features_list = set()
+    features_number = random.randint(1,3)
 
     for j in range(features_number):
-        features_list.append(fake.special_features())
+        features_list.add(fake.special_features())
 
-    final_list = list(set(features_list)) # Removes any duplicates
-    film_data["special_features"].append(final_list)
+    features_string = ', '.join(features_list)
+
+    film_data["special_features"].append(features_string)
 
 df_film_data = pd.DataFrame(film_data)
 # -----------------------------------------------------------------------------
 # Film_actor bridges film and actor tables.
-# Every film needs at least 2 actors, up to like 10
 film_actors_data = defaultdict(list)
 
-for i in range(25): #TODO rm magic number
+for i in range(number_of_films):
     total_actors = random.randrange(2,10)
+    actor_set = set()
+
     for j in range(total_actors):
-        actor_id = random.randrange(1,20) #Grab random actor id
-        actor_full_name = actor_data.get("first_name")[actor_id] + " " + actor_data.get("last_name")[actor_id]
-        film_actors_data["film_id"].append(actor_full_name)
+        actor_set.add(random.randrange(1,number_of_actors))
+
+    for actor in actor_set:
+        film_actors_data["film_id"].append(i+1)
+        film_actors_data["actor_id"].append(actor)
 
 df_film_actors_data = pd.DataFrame(film_actors_data)
 # -----------------------------------------------------------------------------
@@ -213,10 +235,10 @@ location_list = ["space", "the desert", "New York", "Seattle", "the ocean",
 "a small town", "a cruise ship", "a school", "the forest", "a cabin in the woods",
 "a cafe"]
 
-for i in range(len(film_data)):
+for i in range(number_of_films):
     film_text_data["film_id"].append(i + 1)
 
-    # Allows for any size of list of words
+    # Builds words for description, madlibs style
     description_adj = adj_list[random.randrange(0,len(adj_list))]
     description_type = film_type_list[random.randrange(0,len(film_type_list))]
     description_noun = noun_list[random.randrange(0,len(noun_list))]
@@ -233,20 +255,16 @@ df_film_text_data = pd.DataFrame(film_text_data)
 # Inventory
 # has film ID, store ID, and purchase date
 
-# This one might need to just do auto-incrementing ID
-# OR a second loop that adds ID based on len of list
-
 inventory_data = defaultdict(list)
 
-for i in range(25): #Rm the magique number (number of films)
-    for j in range(100): #Rm the magic-tastic number (number of stores)
-        num_of_copies = random.randint(1,4) # Between 1 and 4 copies of each movie per store
+for i in range(number_of_films):
+
+    for j in range(number_of_stores):
+        num_of_copies = random.randint(1,max_inventory_copies)
+
         for k in range(num_of_copies):
             inventory_data["film_id"].append(i + 1)
             inventory_data["store_id"].append(j + 1)
-
-            opening_date = datetime.date(1990,6,23)
-            current_date = datetime.date(2007,3,9)
             inventory_data["purchase_date"].append(fake.date_between_dates(opening_date, current_date))
 
 df_inventory_data = pd.DataFrame(inventory_data)
@@ -308,7 +326,7 @@ df_rating_data = pd.DataFrame(rating_data)
 
 staff_data = defaultdict(list)
 
-for i in range(5):
+for i in range(number_of_staff):
     staff_data["staff_id"].append(i+1)
     staff_data["first_name"].append(fake.first_name())
     staff_data["last_name"].append(fake.last_name())
@@ -338,15 +356,13 @@ df_state_data = pd.DataFrame(state_data)
 # has manager_staff_id, City id, opening date
 store_data = defaultdict(list)
 
-for i in range(10):
-    random_city_id = random.randrange(1, len(city_names), 1)
+for i in range(number_of_stores):
+    random_city_id = random.randrange(1, len(city_names))
     store_data["city_id"].append(random_city_id)
 
-    random_employee_id = random.randrange(1, len(staff_data),1)
+    random_employee_id = random.randrange(1, number_of_staff+1)
     store_data["city_id"].append(random_employee_id)
 
-    opening_date = datetime.date(1990,6,23)
-    current_date = datetime.date(2007,3,9)
     store_data["opening_date"].append(fake.date_between_dates(opening_date, current_date))
 
 # df_store_data = pd.DataFrame(store_data)
@@ -363,7 +379,7 @@ for i in range(10):
 
 transaction_data = defaultdict(list)
 
-for i in range(10):
+for i in range(number_of_transactions):
     transaction_data["transaction_id"].append(i + 1)
     transaction_data["total_paid"].append(15) #TODO rm, for testing only
 
@@ -372,17 +388,19 @@ df_transaction_data = pd.DataFrame(transaction_data)
 # Add data to testdb schema
 engine = create_engine('mysql://root:rootroot@localhost/testdb', echo=False)
 
-# This can defs be a function
 df_actor_data.to_sql('actor', con=engine, index=False)
 df_category_data.to_sql('category', con=engine, index=False)
 df_city_data.to_sql('city', con=engine, index=False)
 df_customer_data.to_sql('customer', con=engine, index=False)
-# df_film_data.to_sql('film', con=engine, index=False) errors exist, "operand should contain one column" - PROBABLY special features col
+df_film_data.to_sql('film', con=engine, index=False)
+df_film_actors_data.to_sql('film_actors', con=engine, index=False)
 df_film_text_data.to_sql('film_text', con=engine, index=False)
+df_inventory_data.to_sql('inventory', con=engine, index=False)
 df_language_data.to_sql('language', con=engine, index=False)
 df_location_data.to_sql('location', con=engine, index=False)
 df_rating_data.to_sql('mpa_rating', con=engine, index=False)
 df_staff_data.to_sql('staff', con=engine, index=False)
+df_state_data.to_sql('state', con=engine, index=False)
 df_transaction_data.to_sql('transactions', con=engine, index=False)
 
 # -----------------------------------------------------------------------------
