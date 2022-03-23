@@ -134,11 +134,11 @@ for i in range(number_of_films):
 
     film_data["language_id"].append(language_id)
 
-    duration = random.randrange(min_rental_duration,max_rental_duration + 1) #Adding one to make correct max
+    duration = random.randrange(min_rental_duration, max_rental_duration + 1) #Adding one to make correct max
     film_data["rental_duration"].append(duration)
 
-    category_id = random.randrange(len(category_data))
-    film_data["category_id"].append("category_id")
+    category_id = random.randrange(1, len(category_names))
+    film_data["category_id"].append(category_id)
 
     rental_price = random.randrange(min_rental_price,max_rental_price+1,rental_price_increment) #Adding one to make correct max
     film_data["rental_price"].append(rental_price)
