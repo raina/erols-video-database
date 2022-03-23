@@ -23,8 +23,8 @@ max_rental_price = 7
 rental_price_increment = 2 # How many dollars between rental prices
 min_rental_duration = 3
 max_rental_duration = 7
-min_replacement_cost = 10
-max_replacement_cost = 25
+min_replacement_cost = 10.00
+max_replacement_cost = 25.00
 max_inventory_copies = 4
 max_actors_in_film = 10
 max_special_features = 3
@@ -106,18 +106,7 @@ for i in range(len(city_names)):
     city_data["city_name"].append((city_names)[i])
 
 df_city_data = pd.DataFrame(city_data)
-# -----------------------------------------------------------------------------
-# Customer: ID, first name, last name, City ID, create date
-customer_data = defaultdict(list)
 
-for i in range(number_of_customers):
-    customer_data["customer_id"].append(i+1)
-    customer_data["first_name"].append(fake.first_name())
-    customer_data["last_name"].append(fake.last_name())
-    customer_data["joined_on"].append(fake.date_between_dates(opening_date, current_date))
-    customer_data["city_id"].append(random.randrange(1, len(city_names)))
-
-df_customer_data = pd.DataFrame(customer_data)
 # -----------------------------------------------------------------------------
 # Film: Title, release year, language ID, rental duration, category, rental price,
 #       length in minutes, replacement cost, rating, special features
@@ -157,7 +146,8 @@ for i in range(number_of_films):
     film_data["length"].append(random.randrange(90,180)) # Length in minutes
 
     replacement_price = round(random.uniform(min_replacement_cost, max_replacement_cost), 2)
-    film_data["replacement_price"].append(replacement_price)
+    formatted_price = format(replacement_price, '.2f')
+    film_data["replacement_price"].append(formatted_price)
 
     # Weight mpa rating - loosely follows real-life distribution
     x = random.randint(1,100)
@@ -300,21 +290,7 @@ df_rating_data = pd.DataFrame(rating_data)
 # Line item ID (not transaction), rental date, return date
 # Return date is a function of rental length
 # Like rand(rental_duration - 2):(rental_duration + 2)
-# -----------------------------------------------------------------------------
-# Staff: first name, last name, email, store_id, active
 
-staff_data = defaultdict(list)
-
-for i in range(number_of_staff):
-    staff_data["staff_id"].append(i+1)
-    staff_data["first_name"].append(fake.first_name())
-    staff_data["last_name"].append(fake.last_name())
-    staff_email = staff_data.get("first_name")[i] + staff_data.get("last_name")[i] + "@company.com"
-    staff_data["email"].append(staff_email)
-    # Store ID
-    # Active employee - weight towards Y
-
-df_staff_data = pd.DataFrame(staff_data)
 # -----------------------------------------------------------------------------
 # State: id, name
 state_data = defaultdict(list)
@@ -329,18 +305,19 @@ for i in range(len(state_names)):
 df_state_data = pd.DataFrame(state_data)
 # -----------------------------------------------------------------------------
 # STORE: manager_staff_id, City id, opening date
+# Depends on CITY table
 store_data = defaultdict(list)
 
 for i in range(number_of_stores):
+
+    store_data["store_id"].append(i+1)
+
     random_city_id = random.randrange(1, len(city_names))
     store_data["city_id"].append(random_city_id)
 
-    random_employee_id = random.randrange(1, number_of_staff+1)
-    store_data["city_id"].append(random_employee_id)
-
     store_data["opening_date"].append(fake.date_between_dates(opening_date, current_date))
 
-# df_store_data = pd.DataFrame(store_data)
+df_store_data = pd.DataFrame(store_data)
 # -----------------------------------------------------------------------------
 # transaction
 # consists of multiple line items
@@ -359,6 +336,58 @@ for i in range(number_of_transactions):
 
 df_transaction_data = pd.DataFrame(transaction_data)
 # -----------------------------------------------------------------------------
+# CUSTOMER: ID, first name, last name, City ID, create date
+# Depends on STORE and CITY table
+customer_data = defaultdict(list)
+
+for i in range(number_of_customers):
+    customer_data["customer_id"].append(i+1)
+    customer_data["first_name"].append(fake.first_name())
+    customer_data["last_name"].append(fake.last_name())
+
+    store_id = random.randrange(1, number_of_stores)
+    customer_data["store_id"].append(store_id)
+
+    store_opening_date = store_data.get("opening_date")[store_id-1]
+    customer_data["joined_on"].append(fake.date_between_dates(store_opening_date, current_date))
+
+    store_city_id = store_data["city_id"][store_id-1]
+    customer_data["city_id"].append(store_city_id)
+
+df_customer_data = pd.DataFrame(customer_data)
+# -----------------------------------------------------------------------------
+# STAFF: first name, last name, email, store_id, active
+# Depends on STORE table
+staff_data = defaultdict(list)
+
+for i in range(number_of_staff):
+    staff_data["staff_id"].append(i+1)
+    staff_data["first_name"].append(fake.first_name())
+    staff_data["last_name"].append(fake.last_name())
+
+    staff_email = staff_data.get("first_name")[i] + staff_data.get("last_name")[i] + "@company.com"
+    staff_data["email"].append(staff_email)
+
+    staff_data["store_id"].append(random.randrange(1,number_of_stores))
+
+    activity_dice = random.randint(1,100)
+    if activity_dice < 5:
+        staff_data["active_employee"].append(0)
+    else:
+        staff_data["active_employee"].append(1)
+
+df_staff_data = pd.DataFrame(staff_data)
+# -----------------------------------------------------------------------------
+# Add manager to store
+# Depends on STORE and STAFF tables
+
+# Make list of index positions that store_id [i] appears at
+#for i in range(number_of_stores):
+#    store_id = i
+#    city_list = store_data["city_id"]
+#    indices = [j for j, x in enumerate(my_list) if x == store_id]
+
+# -----------------------------------------------------------------------------
 # Add data to testdb schema
 engine = create_engine('mysql://root:rootroot@localhost/testdb', echo=False)
 
@@ -375,6 +404,7 @@ df_location_data.to_sql('location', con=engine, index=False)
 df_rating_data.to_sql('mpa_rating', con=engine, index=False)
 df_staff_data.to_sql('staff', con=engine, index=False)
 df_state_data.to_sql('state', con=engine, index=False)
+df_store_data.to_sql('store', con=engine, index=False)
 df_transaction_data.to_sql('transactions', con=engine, index=False)
 
 # -----------------------------------------------------------------------------
