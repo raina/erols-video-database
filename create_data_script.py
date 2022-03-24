@@ -15,7 +15,7 @@ number_of_actors = 300
 number_of_customers = 1000
 number_of_staff = 100
 number_of_stores = 20
-number_of_transactions = 3000
+number_of_transactions = 30
 
 # Minimums and maximums for various options
 min_rental_price = 3
@@ -55,7 +55,8 @@ movie_name_provider = DynamicProvider(
     provider_name = "movie_name",
     elements=["Battle", "Mage", "New York", "Alien", "Cowboy", "Space", "Pirate",
     "Showdown", "Magic", "Dog", "Office", "Robot", "Party", "Night", "Day", "Tree",
-    "Sasquatch", "Water", "Fire", "Earth", "Air", "Tree", "Park"]
+    "Sasquatch", "Water", "Fire", "Earth", "Air", "Park", "Goose", "Beetle", "Ghost",
+    "Stalker", "Shark", "Dinosaur", "Astronaut", "Explorer", "Ship"]
 )
 
 fake.add_provider(movie_name_provider)
@@ -196,22 +197,27 @@ df_film_actors_data = pd.DataFrame(film_actors_data)
 # Film text: is a generated description of a film
 film_text_data = defaultdict(list)
 
-adj_list = ["striking", "lovely", "exciting", "sorrowful", "poignant",
-"hilarious", "uninspired", "original", "inspirational", "adventurous"]
+# Start with space or n-space to keep description grammatically correct
+adj_list = [" striking", " lovely", "n exciting", " sorrowful", " poignant",
+" hilarious", "n uninspired", "n original", "n inspirational", "n adventurous", " snarky",
+" worthwhile", " joyful", " monotonous"]
 
 film_type_list = ["tale", "epic", "story", "account", "saga", "documentary",
 "drama", "portrayal", "adventure", "film"]
 
 noun_list = ["a firefighter", "a witch", "an explorer", "a monkey",
-"a dog", "a teacher", "a programmer", "an olympic athlete", "a superhero", "an alien"]
+"a dog", "a teacher", "a programmer", "an olympic athlete", "a superhero", "an alien",
+"a goose", "a beetle", "a ghost", "a stalker", "a shark", "a dinosaur",
+"an astronaut", "an explorer", "a regular person"]
 
-action_list = ["fights", "deceives", "saves", "builds", "fixes", "destroys",
-"encourages", "races", "fights", "deceives", "befriends", "helps"]
+action_list = ["fights", "deceives", "saves", "fixes", "destroys", "teams up with",
+"encourages", "races", "befriends", "helps", "cons", "convinces", "trains",
+"works with", "strikes a deal with", "curses"]
 
 location_list = ["space", "the desert", "New York", "Seattle", "the ocean",
 "an abandoned power plant", "a haunted house", "area 51", "a park", "a new planet",
 "a small town", "a cruise ship", "a school", "the forest", "a cabin in the woods",
-"a cafe"]
+"a cafe", "a cave"]
 
 for i in range(number_of_films):
     film_text_data["film_id"].append(i + 1)
@@ -224,7 +230,7 @@ for i in range(number_of_films):
     description_noun_2 = noun_list[random.randrange(0,len(noun_list))]
     description_location = location_list[random.randrange(0,len(location_list))]
 
-    film_description =  "A " + description_adj + " " + description_type + " of " + description_noun + " who " + description_action + " " + description_noun_2 + " in " + description_location + "."
+    film_description =  "A" + description_adj + " " + description_type + " of " + description_noun + " who " + description_action + " " + description_noun_2 + " in " + description_location + "."
 
     film_text_data["film_description"].append(film_description)
 
@@ -271,9 +277,6 @@ for i in range(len(city_names)):
 
 df_location_data = pd.DataFrame(location_data)
 # -----------------------------------------------------------------------------
-# Line item
-# Has ID, film ID, transaction ID, price
-# -----------------------------------------------------------------------------
 # mpa_rating: id, name
 rating_data = defaultdict(list)
 
@@ -285,11 +288,6 @@ for i in range(len(ratings)):
     rating_data["mpa_rating"].append((ratings)[i])
 
 df_rating_data = pd.DataFrame(rating_data)
-# -----------------------------------------------------------------------------
-# Rental
-# Line item ID (not transaction), rental date, return date
-# Return date is a function of rental length
-# Like rand(rental_duration - 2):(rental_duration + 2)
 
 # -----------------------------------------------------------------------------
 # State: id, name
@@ -318,23 +316,7 @@ for i in range(number_of_stores):
     store_data["opening_date"].append(fake.date_between_dates(opening_date, current_date))
 
 df_store_data = pd.DataFrame(store_data)
-# -----------------------------------------------------------------------------
-# transaction
-# consists of multiple line items
-# Has ID, staff id, customer id, store id, total amount, rental date
 
-# This should probably go Like
-# Every customer has home store and at least one transaction
-# Every store has certain employees who could do transaction
-# Total amount is kinda tricky so maybe that's done in db?
-
-transaction_data = defaultdict(list)
-
-for i in range(number_of_transactions):
-    transaction_data["transaction_id"].append(i + 1)
-    transaction_data["total_paid"].append(15) #TODO rm, for testing only
-
-df_transaction_data = pd.DataFrame(transaction_data)
 # -----------------------------------------------------------------------------
 # CUSTOMER: ID, first name, last name, City ID, create date
 # Depends on STORE and CITY table
@@ -378,14 +360,73 @@ for i in range(number_of_staff):
 
 df_staff_data = pd.DataFrame(staff_data)
 # -----------------------------------------------------------------------------
-# Add manager to store
-# Depends on STORE and STAFF tables
+# Rental & Transactions
 
-# Make list of index positions that store_id [i] appears at
-#for i in range(number_of_stores):
-#    store_id = i
-#    city_list = store_data["city_id"]
-#    indices = [j for j, x in enumerate(my_list) if x == store_id]
+# Rental: film_id, rental date, return date, transaction ID
+# Return date is a function of rental length
+# Weight towards returned on time
+
+# transaction: ID, staff id, customer id, store id, total amount, rental date
+# This should probably go Like
+# Every customer has home store and at least one transaction
+# Every store has certain employees who could do transaction
+
+rental_data = defaultdict(list)
+transaction_data = defaultdict(list)
+
+for i in range(number_of_transactions):
+
+    transaction_data["transaction_id"].append(i + 1)
+
+    transaction_customer = random.randrange(1,number_of_customers)
+    transaction_data["customer_id"].append(transaction_customer)
+
+    # Customers only rent from their home store
+    transaction_store = customer_data.get("store_id")[transaction_customer-1]
+    transaction_data["store_id"].append(transaction_store)
+
+    # No rentals before becoming a customer
+    customer_join_date = customer_data.get("joined_on")[transaction_customer-1]
+    transaction_date = fake.date_between_dates(customer_join_date, current_date)
+
+    # Generate 1-3 movies per transaction
+    films_rented = random.randint(1,3)
+    rental_date = fake.date_between_dates(store_opening_date, current_date)
+    total_price = 0
+
+    for j in range(films_rented):
+
+        rental_data["transaction_id"].append(i + 1)
+
+        film_id = random.randrange(1,number_of_films)
+        rental_data["film_id"].append(film_id)
+
+        total_price += film_data.get("rental_price")[film_id-1]
+
+        rental_data["rental_date"].append(transaction_date)
+
+        film_rental_duration = film_data.get("rental_duration")[film_id-1]
+
+        # Weight return date towards on time with a few early, some late 
+        x = random.randint(1,100)
+
+        if x <= 10:
+            return_delta = -1 # returned early
+        elif x > 10 and x <= 80:
+            return_delta = 0              # Returned on time
+        else:
+            return_delta = random.randint(1,7) # Never returned
+
+        # Calc return date off rental date + rental_duartion + delta
+        rental_period = datetime.timedelta(days = film_rental_duration + return_delta)
+        return_date = transaction_date + rental_period
+        rental_data["return_date"].append(return_date)
+
+    # Get total movie prices
+    transaction_data["total_paid"].append(total_price)
+
+df_rental_data = pd.DataFrame(rental_data)
+df_transaction_data = pd.DataFrame(transaction_data)
 
 # -----------------------------------------------------------------------------
 # Add data to testdb schema
@@ -402,6 +443,7 @@ df_inventory_data.to_sql('inventory', con=engine, index=False)
 df_language_data.to_sql('language', con=engine, index=False)
 df_location_data.to_sql('location', con=engine, index=False)
 df_rating_data.to_sql('mpa_rating', con=engine, index=False)
+df_rental_data.to_sql('rentals', con=engine, index=False)
 df_staff_data.to_sql('staff', con=engine, index=False)
 df_state_data.to_sql('state', con=engine, index=False)
 df_store_data.to_sql('store', con=engine, index=False)
