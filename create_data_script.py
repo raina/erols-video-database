@@ -14,7 +14,7 @@ fake = Faker()
 
 # Change 'databaseName' to point the empty mysql schema you want populated
 # Replace 'user' and 'password' with your own details
-engine = create_engine('mysql://root:rootroot@localhost/testdb', echo=False)
+engine = create_engine('mysql://user:password@localhost/databaseName', echo=False)
 
 # Constants - set these to determine how many records are generated
 number_of_films = 200
