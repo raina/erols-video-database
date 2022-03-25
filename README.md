@@ -1,4 +1,4 @@
-# erols-video-database
+# jackolantern-video-database
 A fake movie rental database to practice using SQL queries
 
 ## History and Inspiration
@@ -14,7 +14,7 @@ go rent some videos!
 ## How to Use the Database
 If you just want to have a sample database to practice queries and analysis with, download `SCRIPT NAME.sql` and open it in MySQL to generate the database.
 
-If you want to make changes to any of the below assumptions or change the number of films, stores, etc., download the Python file `create_data_script.py` and change the variables at the top listed under "Constants" to reflect what you want the database to contain. Also, you will need to change the "engine" line to point to your own database - instructions for that are in the file. Run the script and all the data will be generated to the specified schema. The only manual step is creating the foreign keys in MySQL (I'm hoping to add that functionality in a future version).
+If you want to make changes to any of the below assumptions or change the number of films, stores, etc., download the Python file `create_data_script.py` and change the variables at the top listed under "Constants" to reflect what you want the database to contain. Also, you will need to change the "engine" line to point to your own database - instructions for that are in the file. Run the script and all the data will be generated to the specified schema. The only manual step is creating the foreign keys in MySQL and marking ID's as primary keys (I'm hoping to add that functionality in a future version).
 
 ## Database Facts and Assumptions
 
@@ -34,7 +34,7 @@ small number of other languages
 | :--- | :--- | :---  | :--- | :--- |
 | 5%   | 10%  | 70%   | 10%  | 5%   |
 
-- Movies have between 1-3 special features and 2-10 unique actors
+- Movies have between 1-3 special features and 1-10 unique actors
 - Movies are 90-180 minutes long
 - Movies only release on January 1 of their release year
 

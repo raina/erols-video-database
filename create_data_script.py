@@ -9,6 +9,13 @@ from sqlalchemy import create_engine
 
 fake = Faker()
 
+# ------------------------------------------------------------------------------
+# USER-DESIGNATED PARAMETERS
+
+# Change 'databaseName' to point the empty mysql schema you want populated
+# Replace 'user' and 'password' with your own details
+engine = create_engine('mysql://root:rootroot@localhost/testdb', echo=False)
+
 # Constants - set these to determine how many records are generated
 number_of_films = 200
 number_of_actors = 300
@@ -32,6 +39,7 @@ max_special_features = 3
 # Opening date of the first store, and date the records were taken
 opening_date = datetime.date(1990,6,23)
 current_date = datetime.date(2007,3,9)
+# ------------------------------------------------------------------------------
 
 # Create function to randomize outcome with weights
 def weighted_random(weight1,weight2,lower1,upper1,lower2,upper2,lower3,upper3):
@@ -176,7 +184,7 @@ df_film_data = pd.DataFrame(film_data)
 film_actors_data = defaultdict(list)
 
 for i in range(number_of_films):
-    total_actors = random.randrange(2,10)
+    total_actors = random.randrange(2,11)
     actor_set = set()
 
     for j in range(total_actors):
@@ -234,17 +242,21 @@ df_film_text_data = pd.DataFrame(film_text_data)
 
 inventory_data = defaultdict(list)
 
+inventory_id_number = 1
+
 for i in range(number_of_films):
 
     for j in range(number_of_stores):
         num_of_copies = random.randint(1,max_inventory_copies)
 
         for k in range(num_of_copies):
+            inventory_data["inventory_id"].append(inventory_id_number)
             inventory_data["film_id"].append(i + 1)
             inventory_data["store_id"].append(j + 1)
             movie_release_year = film_data.get("release_year")[i]
             film_release_date = datetime.datetime(movie_release_year,1,1)
             inventory_data["purchase_date"].append(fake.date_between_dates(film_release_date, current_date))
+            inventory_id_number += 1
 
 df_inventory_data = pd.DataFrame(inventory_data)
 
@@ -340,7 +352,7 @@ for i in range(number_of_staff):
     staff_data["first_name"].append(fake.first_name())
     staff_data["last_name"].append(fake.last_name())
 
-    staff_email = staff_data.get("first_name")[i] + staff_data.get("last_name")[i] + "@company.com"
+    staff_email = staff_data.get("first_name")[i] + staff_data.get("last_name")[i] + "@jackolanternvideo.com"
     staff_data["email"].append(staff_email)
 
     staff_data["store_id"].append(random.randrange(1,number_of_stores))
@@ -359,6 +371,7 @@ df_staff_data = pd.DataFrame(staff_data)
 
 rental_data = defaultdict(list)
 transaction_data = defaultdict(list)
+rental_id_number = 1
 
 for i in range(number_of_transactions):
 
@@ -382,6 +395,8 @@ for i in range(number_of_transactions):
 
     for j in range(films_rented):
 
+        rental_data["rental_id"].append(rental_id_number)
+        rental_id_number += 1
         rental_data["transaction_id"].append(i + 1)
 
         film_id = random.randrange(1,number_of_films)
@@ -415,18 +430,17 @@ df_rental_data = pd.DataFrame(rental_data)
 df_transaction_data = pd.DataFrame(transaction_data)
 
 # Add data to testdb schema
-engine = create_engine('mysql://root:rootroot@localhost/testdb', echo=False)
 
 df_actor_data.to_sql('actor', con=engine, index=False)
 df_category_data.to_sql('category', con=engine, index=False)
 df_city_data.to_sql('city', con=engine, index=False)
+df_location_data.to_sql('city_state', con=engine, index=False)
 df_customer_data.to_sql('customer', con=engine, index=False)
 df_film_data.to_sql('film', con=engine, index=False)
-df_film_actors_data.to_sql('film_actors', con=engine, index=False)
+df_film_actors_data.to_sql('film_actor', con=engine, index=False)
 df_film_text_data.to_sql('film_text', con=engine, index=False)
 df_inventory_data.to_sql('inventory', con=engine, index=False)
 df_language_data.to_sql('language', con=engine, index=False)
-df_location_data.to_sql('location', con=engine, index=False)
 df_rating_data.to_sql('mpa_rating', con=engine, index=False)
 df_rental_data.to_sql('rentals', con=engine, index=False)
 df_staff_data.to_sql('staff', con=engine, index=False)
