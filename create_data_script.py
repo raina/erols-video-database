@@ -15,7 +15,7 @@ number_of_actors = 300
 number_of_customers = 1000
 number_of_staff = 100
 number_of_stores = 20
-number_of_transactions = 30
+number_of_transactions = 2000
 
 # Minimums and maximums for various options
 min_rental_price = 3
@@ -29,12 +29,11 @@ max_inventory_copies = 4
 max_actors_in_film = 10
 max_special_features = 3
 
-# Opening date of the first store, and date the records were taken (latest possible)
+# Opening date of the first store, and date the records were taken
 opening_date = datetime.date(1990,6,23)
 current_date = datetime.date(2007,3,9)
 
 # Create function to randomize outcome with weights
-# Might want to somehow refactor this depending on what use cases end up being
 def weighted_random(weight1,weight2,lower1,upper1,lower2,upper2,lower3,upper3):
 
     x = random.randint(1,100)
@@ -49,7 +48,7 @@ def weighted_random(weight1,weight2,lower1,upper1,lower2,upper2,lower3,upper3):
         num = random.randrange(lower3,upper3)
         return num
 
-# New Dynamic providers to generate specific info
+# New Dynamic providers for Faker to generate specific info
 # Movie Name provider
 movie_name_provider = DynamicProvider(
     provider_name = "movie_name",
@@ -70,11 +69,7 @@ elements=["Deleted Scenes", "Director's Cut", "Director Commentary", "Interviews
 
 fake.add_provider(special_features_provider)
 
-# Example of accessing specific value in list
-# actor_full_name = actor_data.get("first_name")[actor_id] + " " + actor_data.get("last_name")[actor_id]
-
-# -----------------------------------------------------------------------------
-# Actors: ID, first name, last name
+# ACTORS: ID, first name, last name
 actor_data = defaultdict(list)
 
 for i in range(number_of_actors):
@@ -83,8 +78,8 @@ for i in range(number_of_actors):
     actor_data["last_name"].append(fake.last_name())
 
 df_actor_data = pd.DataFrame(actor_data)
-# -----------------------------------------------------------------------------
-# Category: ID, Name
+
+# CATEGORY: ID, Name
 category_data = defaultdict(list)
 
 category_names = ["Action", "Animation", "Children", "Classics", "Comedy", "Documentary",
@@ -95,8 +90,8 @@ for i in range(len(category_names)):
     category_data["category_name"].append((category_names)[i])
 
 df_category_data = pd.DataFrame(category_data)
-# -----------------------------------------------------------------------------
-# City: ID, name
+
+# CITY: ID, name
 city_data = defaultdict(list)
 
 city_names = ["Seattle", "Portland", "Los Angeles", "New York", "Boulder", "Austin",
@@ -108,8 +103,7 @@ for i in range(len(city_names)):
 
 df_city_data = pd.DataFrame(city_data)
 
-# -----------------------------------------------------------------------------
-# Film: Title, release year, language ID, rental duration, category, rental price,
+# FILM: Title, release year, language ID, rental duration, category, rental price,
 #       length in minutes, replacement cost, rating, special features
 
 film_data = defaultdict(list)
@@ -177,8 +171,8 @@ for i in range(number_of_films):
     film_data["special_features"].append(features_string)
 
 df_film_data = pd.DataFrame(film_data)
-# -----------------------------------------------------------------------------
-# Film_actor: bridges film and actor tables
+
+# FILM_ACTOR: bridges film and actor tables
 film_actors_data = defaultdict(list)
 
 for i in range(number_of_films):
@@ -193,11 +187,11 @@ for i in range(number_of_films):
         film_actors_data["actor_id"].append(actor)
 
 df_film_actors_data = pd.DataFrame(film_actors_data)
-# -----------------------------------------------------------------------------
-# Film text: is a generated description of a film
+
+# FILM TEXT: is a generated description of a film
 film_text_data = defaultdict(list)
 
-# Start with space or n-space to keep description grammatically correct
+# Start with space or "n" then space to keep description grammatically correct
 adj_list = [" striking", " lovely", "n exciting", " sorrowful", " poignant",
 " hilarious", "n uninspired", "n original", "n inspirational", "n adventurous", " snarky",
 " worthwhile", " joyful", " monotonous"]
@@ -235,8 +229,8 @@ for i in range(number_of_films):
     film_text_data["film_description"].append(film_description)
 
 df_film_text_data = pd.DataFrame(film_text_data)
-# -----------------------------------------------------------------------------
-# Inventory: film ID, store ID, and purchase date
+
+# INVENTORY: film ID, store ID, and purchase date
 
 inventory_data = defaultdict(list)
 
@@ -253,8 +247,8 @@ for i in range(number_of_films):
             inventory_data["purchase_date"].append(fake.date_between_dates(film_release_date, current_date))
 
 df_inventory_data = pd.DataFrame(inventory_data)
-# -----------------------------------------------------------------------------
-# Language: ID and name
+
+# LANGUAGE: ID and name
 language_data = defaultdict(list)
 
 language_names = ["English", "Japanese", "Spanish", "French", "Mandarin",
@@ -266,8 +260,8 @@ for i in range(len(language_names)):
     language_data["language_name"].append((language_names)[i])
 
 df_language_data = pd.DataFrame(language_data)
-# -----------------------------------------------------------------------------
-# location: city id and state id
+
+# lOCATION: city id and state id
 # This only works because city and state name lists are manually typed in the right order.
 location_data = defaultdict(list)
 
@@ -276,8 +270,8 @@ for i in range(len(city_names)):
     location_data["city_id"].append(i + 1)
 
 df_location_data = pd.DataFrame(location_data)
-# -----------------------------------------------------------------------------
-# mpa_rating: id, name
+
+# MPA_RATING: id, name
 rating_data = defaultdict(list)
 
 ratings = ["G", "PG", "PG-13", "R", "NC-17"]
@@ -289,8 +283,8 @@ for i in range(len(ratings)):
 
 df_rating_data = pd.DataFrame(rating_data)
 
-# -----------------------------------------------------------------------------
-# State: id, name
+
+# STATE: id, name
 state_data = defaultdict(list)
 
 state_names = ["Washington", "Oregon", "California", "New York", "Colorado", "Texas",
@@ -301,7 +295,7 @@ for i in range(len(state_names)):
     state_data["state_name"].append((state_names)[i])
 
 df_state_data = pd.DataFrame(state_data)
-# -----------------------------------------------------------------------------
+
 # STORE: manager_staff_id, City id, opening date
 # Depends on CITY table
 store_data = defaultdict(list)
@@ -317,7 +311,6 @@ for i in range(number_of_stores):
 
 df_store_data = pd.DataFrame(store_data)
 
-# -----------------------------------------------------------------------------
 # CUSTOMER: ID, first name, last name, City ID, create date
 # Depends on STORE and CITY table
 customer_data = defaultdict(list)
@@ -337,7 +330,7 @@ for i in range(number_of_customers):
     customer_data["city_id"].append(store_city_id)
 
 df_customer_data = pd.DataFrame(customer_data)
-# -----------------------------------------------------------------------------
+
 # STAFF: first name, last name, email, store_id, active
 # Depends on STORE table
 staff_data = defaultdict(list)
@@ -359,17 +352,10 @@ for i in range(number_of_staff):
         staff_data["active_employee"].append(1)
 
 df_staff_data = pd.DataFrame(staff_data)
-# -----------------------------------------------------------------------------
-# Rental & Transactions
 
-# Rental: film_id, rental date, return date, transaction ID
-# Return date is a function of rental length
-# Weight towards returned on time
-
-# transaction: ID, staff id, customer id, store id, total amount, rental date
-# This should probably go Like
-# Every customer has home store and at least one transaction
-# Every store has certain employees who could do transaction
+# RENTAL: film_id, rental date, return date, transaction ID
+# TRANSACTION: ID, staff id, customer id, store id, total amount, rental date
+# These go together as both tables need to be built simultaneously
 
 rental_data = defaultdict(list)
 transaction_data = defaultdict(list)
@@ -407,7 +393,7 @@ for i in range(number_of_transactions):
 
         film_rental_duration = film_data.get("rental_duration")[film_id-1]
 
-        # Weight return date towards on time with a few early, some late 
+        # Weight return date towards on time with a few early, some late
         x = random.randint(1,100)
 
         if x <= 10:
@@ -428,7 +414,6 @@ for i in range(number_of_transactions):
 df_rental_data = pd.DataFrame(rental_data)
 df_transaction_data = pd.DataFrame(transaction_data)
 
-# -----------------------------------------------------------------------------
 # Add data to testdb schema
 engine = create_engine('mysql://root:rootroot@localhost/testdb', echo=False)
 
@@ -448,5 +433,3 @@ df_staff_data.to_sql('staff', con=engine, index=False)
 df_state_data.to_sql('state', con=engine, index=False)
 df_store_data.to_sql('store', con=engine, index=False)
 df_transaction_data.to_sql('transactions', con=engine, index=False)
-
-# -----------------------------------------------------------------------------
